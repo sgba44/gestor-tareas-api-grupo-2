@@ -104,3 +104,53 @@ def test_delete_all_tasks_on_empty_db_returns_204(client):
 
     assert resp.status_code == 204
     assert client.get("/tasks/").json() == []
+
+
+def test_create_task_with_description(client):
+    resp = client.post(
+        "/tasks/", json={"title": "Tarea", "description": "Descripción válida"}
+    )
+
+    assert resp.status_code == 201
+    assert resp.json()["description"] == "Descripción válida"
+
+
+def test_create_task_description_too_long_returns_422(client):
+    long_desc = "a" * 501
+
+    resp = client.post("/tasks/", json={"title": "Tarea", "description": long_desc})
+
+    assert resp.status_code == 422
+    assert resp.json()["detail"][0]["loc"] == ["body", "description"]
+
+
+def test_create_task_description_max_length_accepted(client):
+    desc = "a" * 500
+
+    resp = client.post("/tasks/", json={"title": "Tarea", "description": desc})
+
+    assert resp.status_code == 201
+    assert resp.json()["description"] == desc
+
+
+def test_update_task_description_too_long_returns_422(client):
+    task = _create_task(client)
+    long_desc = "b" * 501
+
+    resp = client.patch(
+        f"/tasks/{task['id']}", json={"description": long_desc}
+    )
+
+    assert resp.status_code == 422
+    assert resp.json()["detail"][0]["loc"] == ["body", "description"]
+
+
+def test_update_task_description_succeeds(client):
+    task = _create_task(client)
+
+    resp = client.patch(
+        f"/tasks/{task['id']}", json={"description": "Nueva descripción"}
+    )
+
+    assert resp.status_code == 200
+    assert resp.json()["description"] == "Nueva descripción"
