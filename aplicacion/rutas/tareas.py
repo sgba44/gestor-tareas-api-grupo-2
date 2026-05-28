@@ -156,3 +156,19 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
     task = get_task_or_404(task_id, db)
     db.delete(task)
     db.commit()
+
+
+# Elimina todas las tareas de la base de datos; devuelve 204 sin cuerpo
+@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+def delete_all_tasks(db: Session = Depends(get_db)):
+    """Elimina todas las tareas de la base de datos.
+
+    Args:
+        db (Session): Sesión activa de SQLAlchemy inyectada
+            automáticamente por FastAPI.
+
+    Returns:
+        None: Respuesta vacía con código de estado 204.
+    """
+    db.query(Task).delete()
+    db.commit()
