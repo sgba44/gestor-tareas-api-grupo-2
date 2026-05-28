@@ -71,6 +71,15 @@ def test_update_in_progress_task_succeeds(client):
     assert resp.json()["status"] == "done"
 
 
+def test_update_task_title_too_short_returns_422(client):
+    task = _create_task(client)
+
+    resp = client.patch(f"/tasks/{task['id']}", json={"title": "AB"})
+
+    assert resp.status_code == 422
+    assert resp.json()["detail"][0]["loc"] == ["body", "title"]
+
+
 def test_update_done_task_status_change_blocked(client):
     task = _create_task(client, status="done")
 
