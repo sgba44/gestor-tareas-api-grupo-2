@@ -89,6 +89,26 @@ def test_update_done_task_status_change_blocked(client):
     assert resp.json()["detail"] == "Cannot update a completed task"
 
 
+def test_create_task_description_too_long_returns_422(client):
+    resp = client.post(
+        "/tasks/", json={"title": "Tarea", "description": "x" * 501}
+    )
+
+    assert resp.status_code == 422
+    assert resp.json()["detail"][0]["loc"] == ["body", "description"]
+
+
+def test_update_task_description_too_long_returns_422(client):
+    task = _create_task(client)
+
+    resp = client.patch(
+        f"/tasks/{task['id']}", json={"description": "x" * 501}
+    )
+
+    assert resp.status_code == 422
+    assert resp.json()["detail"][0]["loc"] == ["body", "description"]
+
+
 def test_delete_all_tasks_clears_list(client):
     _create_task(client, title="Tarea 1")
     _create_task(client, title="Tarea 2")
