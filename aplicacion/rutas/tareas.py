@@ -33,7 +33,7 @@ def get_task_or_404(task_id: int, db: Session) -> Task:
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found",
+            detail="Task not found ",
         )
     return task
 
