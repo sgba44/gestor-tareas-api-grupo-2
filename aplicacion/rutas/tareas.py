@@ -127,7 +127,7 @@ def update_task(task_id: int, payload: TaskUpdate, db: Session = Depends(get_db)
     if task.status == TaskStatus.done:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot update a completed task",
+            detail="Tarea no encontrada",
         )
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(task, field, value)
