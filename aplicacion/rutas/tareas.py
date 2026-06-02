@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from aplicacion.base_de_datos import get_db
 from aplicacion.esquemas import TaskCreate, TaskResponse, TaskUpdate
-from aplicacion.modelos import Task, TaskStatus
+from aplicacion.modelos import Task, TaskPriority, TaskStatus
 
 # Router con prefijo /tasks; agrupa todos los endpoints de tareas
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -81,8 +81,8 @@ def create_task(payload: TaskCreate, db: Session = Depends(get_db)):
 
     Args:
         payload (TaskCreate): Esquema Pydantic con los datos de la
-            nueva tarea (``title`` obligatorio, ``description`` y
-            ``status`` opcionales).
+            nueva tarea (``title`` obligatorio, ``description``,
+            ``status`` y ``priority`` opcionales).
         db (Session): Sesión activa de SQLAlchemy inyectada
             automáticamente por FastAPI.
 
@@ -109,8 +109,8 @@ def update_task(task_id: int, payload: TaskUpdate, db: Session = Depends(get_db)
     Args:
         task_id (int): Identificador único de la tarea a actualizar.
         payload (TaskUpdate): Esquema Pydantic con los campos a
-            modificar (``title``, ``description`` y ``status``, todos
-            opcionales).
+            modificar (``title``, ``description``, ``status`` y
+            ``priority``, todos opcionales).
         db (Session): Sesión activa de SQLAlchemy inyectada
             automáticamente por FastAPI.
 
