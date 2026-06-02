@@ -154,3 +154,63 @@ def test_update_task_description_succeeds(client):
 
     assert resp.status_code == 200
     assert resp.json()["description"] == "Nueva descripción"
+
+
+# --- Tests del campo categoria ---
+
+
+def test_create_task_with_categoria(client):
+    resp = client.post(
+        "/tasks/", json={"title": "Tarea", "categoria": "trabajo"}
+    )
+
+    assert resp.status_code == 201
+    assert resp.json()["categoria"] == "trabajo"
+
+
+def test_create_task_without_categoria_defaults_to_null(client):
+    resp = client.post("/tasks/", json={"title": "Tarea sin categoría"})
+
+    assert resp.status_code == 201
+    assert resp.json()["categoria"] is None
+
+
+def test_create_task_categoria_max_length_accepted(client):
+    cat = "a" * 100
+
+    resp = client.post("/tasks/", json={"title": "Tarea", "categoria": cat})
+
+    assert resp.status_code == 201
+    assert resp.json()["categoria"] == cat
+
+
+def test_create_task_categoria_too_long_returns_422(client):
+    long_cat = "a" * 101
+
+    resp = client.post("/tasks/", json={"title": "Tarea", "categoria": long_cat})
+
+    assert resp.status_code == 422
+    assert resp.json()["detail"][0]["loc"] == ["body", "categoria"]
+
+
+def test_update_task_categoria_succeeds(client):
+    task = _create_task(client)
+
+    resp = client.patch(
+        f"/tasks/{task['id']}", json={"categoria": "personal"}
+    )
+
+    assert resp.status_code == 200
+    assert resp.json()["categoria"] == "personal"
+
+
+def test_update_task_categoria_too_long_returns_422(client):
+    task = _create_task(client)
+    long_cat = "b" * 101
+
+    resp = client.patch(
+        f"/tasks/{task['id']}", json={"categoria": long_cat}
+    )
+
+    assert resp.status_code == 422
+    assert resp.json()["detail"][0]["loc"] == ["body", "categoria"]

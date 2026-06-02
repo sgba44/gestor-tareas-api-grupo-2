@@ -12,6 +12,7 @@ from aplicacion.modelos import TaskStatus
 class TaskCreate(BaseModel):
     title: str
     description: Optional[str] = Field(default=None, max_length=500)
+    categoria: Optional[str] = Field(default=None, max_length=100)
     status: TaskStatus = TaskStatus.pending
 
 
@@ -19,6 +20,7 @@ class TaskCreate(BaseModel):
 class TaskUpdate(BaseModel):
     title: Optional[str] = Field(default=None, min_length=3)
     description: Optional[str] = Field(default=None, max_length=500)
+    categoria: Optional[str] = Field(default=None, max_length=100)
     status: Optional[TaskStatus] = None
 
 
@@ -27,6 +29,7 @@ class TaskResponse(BaseModel):
     id: int
     title: str
     description: Optional[str]
+    categoria: Optional[str]
     status: TaskStatus
     created_at: datetime
 
