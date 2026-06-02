@@ -104,3 +104,61 @@ def test_delete_all_tasks_on_empty_db_returns_204(client):
 
     assert resp.status_code == 204
     assert client.get("/tasks/").json() == []
+
+
+def test_create_task_default_priority_is_medium(client):
+    task = _create_task(client)
+
+    assert task["priority"] == "medium"
+
+
+def test_create_task_with_explicit_priority(client):
+    task = _create_task(client, priority="high")
+
+    assert task["priority"] == "high"
+
+
+def test_create_task_with_invalid_priority_returns_422(client):
+    resp = client.post("/tasks/", json={"title": "Test", "priority": "urgent"})
+
+    assert resp.status_code == 422
+    assert resp.json()["detail"][0]["loc"] == ["body", "priority"]
+
+
+def test_update_task_priority(client):
+    task = _create_task(client)
+
+    resp = client.patch(f"/tasks/{task['id']}", json={"priority": "high"})
+
+    assert resp.status_code == 200
+    assert resp.json()["priority"] == "high"
+
+
+def test_update_task_invalid_priority_returns_422(client):
+    task = _create_task(client)
+
+    resp = client.patch(f"/tasks/{task['id']}", json={"priority": "urgent"})
+
+    assert resp.status_code == 422
+    assert resp.json()["detail"][0]["loc"] == ["body", "priority"]
+
+
+def test_get_task_includes_priority(client):
+    task = _create_task(client, priority="low")
+
+    resp = client.get(f"/tasks/{task['id']}")
+
+    assert resp.status_code == 200
+    assert resp.json()["priority"] == "low"
+
+
+def test_list_tasks_includes_priority(client):
+    _create_task(client, priority="high")
+    _create_task(client, priority="low")
+
+    resp = client.get("/tasks/")
+
+    assert resp.status_code == 200
+    priorities = [t["priority"] for t in resp.json()]
+    assert "high" in priorities
+    assert "low" in priorities
