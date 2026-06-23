@@ -154,3 +154,38 @@ def test_update_task_description_succeeds(client):
 
     assert resp.status_code == 200
     assert resp.json()["description"] == "Nueva descripción"
+
+
+def test_list_tasks_with_limit(client):
+    _create_task(client, title="Tarea 1")
+    _create_task(client, title="Tarea 2")
+    _create_task(client, title="Tarea 3")
+
+    resp = client.get("/tasks/", params={"limit": 2})
+
+    assert resp.status_code == 200
+    assert len(resp.json()) == 2
+
+
+def test_list_tasks_without_limit_returns_all(client):
+    _create_task(client, title="Tarea A")
+    _create_task(client, title="Tarea B")
+
+    resp = client.get("/tasks/")
+
+    assert resp.status_code == 200
+    assert len(resp.json()) == 2
+
+
+def test_list_tasks_limit_zero_returns_422(client):
+    resp = client.get("/tasks/", params={"limit": 0})
+
+    assert resp.status_code == 422
+    assert resp.json()["detail"][0]["loc"] == ["query", "limit"]
+
+
+def test_list_tasks_negative_limit_returns_422(client):
+    resp = client.get("/tasks/", params={"limit": -1})
+
+    assert resp.status_code == 422
+    assert resp.json()["detail"][0]["loc"] == ["query", "limit"]
