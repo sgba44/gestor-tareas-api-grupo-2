@@ -116,7 +116,7 @@ def test_create_task_with_description(client):
 
 
 def test_create_task_description_too_long_returns_422(client):
-    long_desc = "a" * 501
+    long_desc = "a" * 201
 
     resp = client.post("/tasks/", json={"title": "Tarea", "description": long_desc})
 
@@ -125,7 +125,7 @@ def test_create_task_description_too_long_returns_422(client):
 
 
 def test_create_task_description_max_length_accepted(client):
-    desc = "a" * 500
+    desc = "a" * 200
 
     resp = client.post("/tasks/", json={"title": "Tarea", "description": desc})
 
@@ -135,7 +135,7 @@ def test_create_task_description_max_length_accepted(client):
 
 def test_update_task_description_too_long_returns_422(client):
     task = _create_task(client)
-    long_desc = "b" * 501
+    long_desc = "b" * 201
 
     resp = client.patch(
         f"/tasks/{task['id']}", json={"description": long_desc}
