@@ -98,6 +98,40 @@ def create_task(payload: TaskCreate, db: Session = Depends(get_db)):
     return task
 
 
+# Marca una tarea como completada sin necesidad de enviar body
+@router.patch("/{task_id}/complete", response_model=TaskResponse)
+def complete_task(task_id: int, db: Session = Depends(get_db)):
+    """Marca una tarea como completada (estado ``done``).
+
+    Permite completar una tarea sin enviar el cuerpo de la petición.
+    No permite completar tareas que ya estén en estado ``done``.
+
+    Args:
+        task_id (int): Identificador único de la tarea a completar.
+        db (Session): Sesión activa de SQLAlchemy inyectada
+            automáticamente por FastAPI.
+
+    Returns:
+        Task: Instancia del modelo ORM de la tarea con el estado
+            actualizado a ``done``.
+
+    Raises:
+        HTTPException: Si no existe una tarea con el ``task_id``
+            proporcionado (código 404) o si la tarea ya tiene estado
+            ``done`` (código 400).
+    """
+    task = get_task_or_404(task_id, db)
+    if task.status == TaskStatus.done:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La tarea ya está completada",
+        )
+    task.status = TaskStatus.done
+    db.commit()
+    db.refresh(task)
+    return task
+
+
 # Actualiza parcialmente una tarea; solo modifica los campos enviados en el cuerpo
 @router.patch("/{task_id}", response_model=TaskResponse)
 def update_task(task_id: int, payload: TaskUpdate, db: Session = Depends(get_db)):
