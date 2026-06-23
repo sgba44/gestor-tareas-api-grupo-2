@@ -154,3 +154,11 @@ def test_update_task_description_succeeds(client):
 
     assert resp.status_code == 200
     assert resp.json()["description"] == "Nueva descripción"
+
+
+def test_create_task_returns_201():
+    response = client.post(
+        "/tasks/",
+        json={"title": "Test"}
+    )
+    assert response.status_code == 201
