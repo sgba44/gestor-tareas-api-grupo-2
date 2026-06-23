@@ -154,3 +154,39 @@ def test_update_task_description_succeeds(client):
 
     assert resp.status_code == 200
     assert resp.json()["description"] == "Nueva descripción"
+
+
+def test_complete_task_pending(client):
+    task = _create_task(client)
+
+    resp = client.patch(f"/tasks/{task['id']}/complete")
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "done"
+    assert data["id"] == task["id"]
+
+
+def test_complete_task_in_progress(client):
+    task = _create_task(client, status="in_progress")
+
+    resp = client.patch(f"/tasks/{task['id']}/complete")
+
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "done"
+
+
+def test_complete_task_already_done_returns_400(client):
+    task = _create_task(client, status="done")
+
+    resp = client.patch(f"/tasks/{task['id']}/complete")
+
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "La tarea ya está completada"
+
+
+def test_complete_task_not_found_returns_404(client):
+    resp = client.patch("/tasks/9999/complete")
+
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "Tarea no encontrada"
