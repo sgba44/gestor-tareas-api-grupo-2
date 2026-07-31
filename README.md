@@ -1,6 +1,6 @@
 # API de Gestión de Tareas
 
-API REST para gestionar el ciclo de vida de tareas, construida con **FastAPI** y **SQLAlchemy**. Permite crear, consultar, actualizar parcialmente y eliminar tareas. Cada tarea cuenta con un identificador único, título, descripción opcional, estado (`pending`, `in_progress`, `done`) y fecha de creación asignada automáticamente.
+API REST para gestionar el ciclo de vida de tareas, construida con **FastAPI** y **SQLAlchemy**. Permite crear, consultar, actualizar parcialmente y eliminar tareas. Cada tarea cuenta con un identificador único, título, descripción opcional, categoría opcional, estado (`pending`, `in_progress`, `done`) y fecha de creación asignada automáticamente.
 
 ## Requisitos previos
 
@@ -84,6 +84,7 @@ curl http://127.0.0.1:8000/tasks/
     "id": 1,
     "title": "Revisar pull request",
     "description": "Revisar PR #42 del módulo de autenticación",
+    "categoria": null,
     "status": "pending",
     "created_at": "2026-05-28T10:00:00"
   }
@@ -113,6 +114,7 @@ curl http://127.0.0.1:8000/tasks/1
   "id": 1,
   "title": "Revisar pull request",
   "description": "Revisar PR #42 del módulo de autenticación",
+  "categoria": null,
   "status": "pending",
   "created_at": "2026-05-28T10:00:00"
 }
@@ -134,7 +136,7 @@ curl http://127.0.0.1:8000/tasks/1
 |--------|-----------------------------------------------------------------------|
 | Método | `POST`                                                                |
 | Ruta   | `/tasks/`                                                             |
-| Body   | JSON con `title` (str, obligatorio), `description` (str, opcional), `status` (str, opcional; por defecto `"pending"`) |
+| Body   | JSON con `title` (str, obligatorio), `description` (str, opcional), `categoria` (str, opcional, máx. 100 caracteres), `status` (str, opcional; por defecto `"pending"`) |
 
 Valores válidos para `status`: `"pending"`, `"in_progress"`, `"done"`.
 
@@ -143,7 +145,7 @@ Valores válidos para `status`: `"pending"`, `"in_progress"`, `"done"`.
 ```bash
 curl -X POST http://127.0.0.1:8000/tasks/ \
   -H "Content-Type: application/json" \
-  -d '{"title": "Escribir tests", "description": "Cubrir los endpoints de tareas"}'
+  -d '{"title": "Escribir tests", "description": "Cubrir los endpoints de tareas", "categoria": "desarrollo"}'
 ```
 
 **Ejemplo de respuesta** (`201 Created`):
@@ -153,6 +155,7 @@ curl -X POST http://127.0.0.1:8000/tasks/ \
   "id": 2,
   "title": "Escribir tests",
   "description": "Cubrir los endpoints de tareas",
+  "categoria": "desarrollo",
   "status": "pending",
   "created_at": "2026-05-28T10:05:00"
 }
@@ -182,7 +185,7 @@ curl -X POST http://127.0.0.1:8000/tasks/ \
 | Método | `PATCH`                                                               |
 | Ruta   | `/tasks/{task_id}`                                                    |
 | Params | `task_id` (int) — Id de la tarea                                      |
-| Body   | JSON con los campos a modificar: `title` (str), `description` (str), `status` (str) — todos opcionales |
+| Body   | JSON con los campos a modificar: `title` (str), `description` (str), `categoria` (str, máx. 100 caracteres), `status` (str) — todos opcionales |
 
 > **Regla de negocio:** no se permite actualizar una tarea cuyo estado sea `done`.
 
@@ -201,6 +204,7 @@ curl -X PATCH http://127.0.0.1:8000/tasks/2 \
   "id": 2,
   "title": "Escribir tests",
   "description": "Cubrir los endpoints de tareas",
+  "categoria": "desarrollo",
   "status": "in_progress",
   "created_at": "2026-05-28T10:05:00"
 }
@@ -255,6 +259,16 @@ pytest tests/ -v
 ```
 
 Los tests utilizan una base de datos SQLite separada para garantizar aislamiento y no afectar al archivo `tareas.db` de producción.
+
+## Nota de migración
+
+Si la base de datos `tareas.db` ya existe con datos, es necesario recrear la tabla `tasks` o ejecutar una migración manual para añadir la columna `categoria`:
+
+```sql
+ALTER TABLE tasks ADD COLUMN categoria VARCHAR(100);
+```
+
+Alternativamente, eliminar el archivo `tareas.db` para que SQLAlchemy recree la tabla automáticamente al arrancar la aplicación (se perderán los datos existentes).
 
 ## Estructura del proyecto
 
